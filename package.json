@@ -1,0 +1,31 @@
+{
+  "name": "monkey-maker",
+  "version": "1.0.0",
+  "description": "Node.js library to easily create configs for Xamarin.iOS and Xamarin.Android projects.",
+  "main": "monkey-maker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peymanmortazavi/MonkeyMaker.js.git"
+  },
+  "keywords": [
+    "xamarin",
+    "make",
+    "monkey",
+    "ios",
+    "android",
+    "config",
+    "build"
+  ],
+  "author": "Peyman Mortazavi <pey.mortazavi@gmail.com> (https://www.linkedin.com/pub/peyman-mortazavi/50/b51/73b)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/peymanmortazavi/MonkeyMaker.js/issues"
+  },
+  "homepage": "https://github.com/peymanmortazavi/MonkeyMaker.js#readme",
+  "dependencies": {
+    "cmd-liner": "^1.0.1"
+  }
+}
