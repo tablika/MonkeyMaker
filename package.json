@@ -26,6 +26,5 @@
   },
   "homepage": "https://github.com/peymanmortazavi/MonkeyMaker.js#readme",
   "dependencies": {
-    "cmd-liner": "^1.0.1"
   }
 }
