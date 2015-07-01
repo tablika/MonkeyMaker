@@ -1,17 +1,19 @@
 {
     "android": {
         "projectName": "string.optional()",
-        "resourceDirectory": "string.default('/Resources')"
+        "resourcesPath": "string.default('Resources')"
     },
     "general": {
-        "mdtoolPath": "string.default('/Applications/Xamarin Studio.app/Contents/MacOS/mdtool')",
-        "solution": "string"
+        "solution": "string",
+        "configsPath": "string.default('oem')",
+        "outputPath": "string.default('output')"
     },
     "hockeyApp": {
         "ApiToken": "string.optional()"
     },
     "ios": {
+        "mdtoolPath": "string.default('/Applications/Xamarin Studio.app/Contents/MacOS/mdtool')",
         "projectName": "string",
-        "resourceDirectory": "string.default('/Resources')"
+        "resourcesPath": "string.default('Resources')"
     }
 }
