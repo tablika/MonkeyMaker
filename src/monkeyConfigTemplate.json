@@ -1,0 +1,17 @@
+{
+    "android": {
+        "projectName": "string.optional()",
+        "resourceDirectory": "string.default('/Resources')"
+    },
+    "general": {
+        "mdtoolPath": "string.default('/Applications/Xamarin Studio.app/Contents/MacOS/mdtool')",
+        "solution": "string"
+    },
+    "hockeyApp": {
+        "ApiToken": "string.optional()"
+    },
+    "ios": {
+        "projectName": "string",
+        "resourceDirectory": "string.default('/Resources')"
+    }
+}
