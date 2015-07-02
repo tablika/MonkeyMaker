@@ -4,6 +4,8 @@ module.exports = function(typeName, value) {
   this.type = typeName;
   this.value = value;
   this.isOptional = false;
+  this.name = "";
+  this.key = "";
 
   return this;
 
@@ -17,6 +19,21 @@ module.exports.prototype.default = function(defaultValue) {
 module.exports.prototype.optional = function() {
   this.isOptional = true;
   this.value = this.value || null;
+  return this;
+}
+
+module.exports.prototype.named = function(name) {
+  this.name = name;
+  return this;
+}
+
+module.exports.prototype.keyed = function(key) {
+  this.key = key;
+  return this;
+}
+
+module.exports.prototype.regex = function(pattern) {
+  this.isValid = this.isValid && pattern.test(this.value);
   return this;
 }
 
@@ -50,6 +67,5 @@ module.exports.prototype.evaluate = function() {
       message: "type mismatch, " + this.value + " is not of type: " + this.type
     };
 
-  return { isValid: true, value: this.value };
-
+  return this;
 }
