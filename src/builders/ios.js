@@ -7,7 +7,7 @@ var optionsTemplate = {
   ios: {
     mdtoolPath: "string.default('/Applications/Xamarin Studio.app/Contents/MacOS/mdtool')",
     projectName: "string",
-    resourceDirectory: "string.default('Resources')"
+    resourcesPath: "string.default('Resources')"
   },
   project: {
     solutionPath: "string",
@@ -31,12 +31,12 @@ module.exports = function(monkey) {
   this.options = evaluationResult.config;
 }
 
-module.exports.prototype.installConfig = function(configName, callback) {
+module.exports.prototype.installConfig = function(configName) {
 
   // Step1: read the config file.
   try {
     var solutionRootPath = path.dirname(this.options.project.solutionPath.value);
-    var configFilePath = path.join(solutionRootPath, this.options.project.configsPath.value, configName, 'ios.config.json');
+    var configFilePath = path.join(resolvePath(solutionRootPath, this.options.project.configsPath.value), configName, 'ios.config.json');
     var configurationObject = JSON.parse(fs.readFileSync( configFilePath ));
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration file: " + configFilePath };
@@ -58,24 +58,47 @@ module.exports.prototype.installConfig = function(configName, callback) {
   // Step3: Manipulate Info.plist
   try {
     var plistPath = path.join(projectRootPath, 'Info.plist');
-    for (var key in configurationObject.app) {
-      var valueDetails = configurationObject.app[key];
-      if(valueDetails.value) {
-        setPlist(plistPath, valueDetails.key||key, valueDetails.value);
-      }
-    }
+    saveConfigObject(configurationObject.app, plistPath);
   } catch (exception) {
     throw { innerException: exception, message: "Could not update Info.plist" };
   }
 
   // Step4: Manipulate Config.plist
+  try {
+    var plistPath = path.join(projectRootPath, 'Config.plist');
+    // We don't need the 'app' property anymore, just remove it.
+    delete configurationObject.app;
+    saveConfigObject(configurationObject, plistPath);
+  } catch (exception) {
+    throw { innerException: exception, message: "Could not update Config.plist" };
+  }
 
   // Step5: Copy resources if any
+  try {
+    var projectResourcesPath = resolvePath(projectRootPath, this.options.ios.resourcesPath.value);
+    var configResourcesPath = path.join(resolvePath(solutionRootPath, this.options.project.configsPath.value), configName, 'ios.resources');
+    if(fs.existsSync(projectResourcesPath) && fs.existsSync(configResourcesPath)) {
+      fs.copySync(configResourcesPath, projectResourcesPath);
+    }
+  } catch (exception) {
+    throw { innerException: exception, message: "Could not install resources for config: " + configName};
+  }
 
 }
 
 module.exports.prototype.build = function(callback) {
 
+}
+
+function saveConfigObject(configObject, plistPath) {
+  for (var key in configObject) {
+    var valueDetails = configObject[key];
+    if(valueDetails.value) {
+      setPlist(plistPath, valueDetails.key||key, valueDetails.value);
+    } else { // if there is no value given, it is an object with sub-properties (probably :D).
+      saveConfigObject(configObject[key], plistPath);
+    }
+  }
 }
 
 function appendObject(object1, object2) {
@@ -91,4 +114,9 @@ function appendObject(object1, object2) {
 function setPlist(plistPath, propertyName, value) {
   var execResult = exec('/usr/libexec/PlistBuddy -c "Set :' + propertyName + ' ' + value + '" "' + plistPath + '"');
   if(execResult.status != 0) throw { status: execResult.status, message: execResult.stderr, output: execResult.stdout };
+}
+
+function resolvePath(prefix, directoryPath) {
+  if(path.isAbsolute(directoryPath)) return directoryPath;
+  return path.join(prefix, directoryPath);
 }
