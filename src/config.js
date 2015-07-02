@@ -29,7 +29,7 @@ function evaluate(configTemplate, actualConfig, prefix) {
         errors.push(results);
         valid = false;
       } else {
-        config[key] = results.value;
+        config[key] = {value: results.value, key: results.key, name: results.name};
       }
     }
   }

@@ -4,8 +4,8 @@ module.exports = function(typeName, value) {
   this.type = typeName;
   this.value = value;
   this.isOptional = false;
-  this.name = "";
-  this.key = "";
+  this.name = null;
+  this.key = null;
 
   return this;
 
@@ -39,18 +39,18 @@ module.exports.prototype.regex = function(pattern) {
 
 module.exports.prototype.evaluate = function() {
 
-  // See if it's invalidated.
-  if(!this.isValid)
-    return {
-      isValid: this.isValid, // which is false
-      message: this.message || "value is not valid."
-    };
-
   // if it's optional and no value is provided, then just return null.
   if(this.isOptional && (this.value == null || this.value == undefined))
     return {
       isValid: true,
       value: null
+    };
+
+  // See if it's invalidated.
+  if(!this.isValid)
+    return {
+      isValid: this.isValid, // which is false
+      message: this.message || "value is not valid."
     };
 
   // if it's null but not optional, then it's invalid.
