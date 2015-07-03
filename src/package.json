@@ -2,7 +2,7 @@
   "name": "monkey-maker",
   "version": "1.0.0",
   "description": "Node.js library to easily create configs for Xamarin.iOS and Xamarin.Android projects.",
-  "main": "monkey-maker.js",
+  "main": "monkey.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

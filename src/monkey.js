@@ -28,31 +28,39 @@ Monkey.prototype.postEvent = function(event, args) {
   }
 }
 
-Monkey.prototype.build = function() {
-  this.postEvent("buildStarted");
+Monkey.prototype.build = function(target, platform, outputPath) {
+
+  var builder = getBuilder(platform);
+  return builder.build(target, outputPath);
 }
 
-Monkey.prototype.applyConfig = function(configName, platform, callback) {
+Monkey.prototype.installConfig = function(configName, platform) {
 
-    var builderClass = this.builders[platform.toLowerCase()];
-    if(!builderClass) throw { message: "Unsupported platform." };
+  var builder = getBuilder(platform);
+  return builder.installConfig(configName, callback);
+}
 
-    var builder = new builderClass(this);
-    builder.installConfig(configName, callback);
+function getBuilder(platform) {
+  var builderClass = this.builders[platform.toLowerCase()];
+  if(!builderClass) throw { message: "Unsupported platform." };
+
+  return new builderClass(this);
 }
 
 try {
   var testOptions = {
     project: {
-      solutionPath: "/Users/peyman/Desktop/configTest/MyProject.sln",
-      configsPath: "configurations"
+      solutionPath: "/Users/peyman/Projects/Tablika/src/CAIL.sln",
+      configsPath: "/Users/peyman/Desktop/oem",
     },
     ios: {
-      projectName: "MyProject.iOS"
+      projectName: "Cail.iOS",
+      resourcesPath: "res"
     }
   };
   var mk = new Monkey( testOptions );
-  mk.applyConfig('Microsoft.staging', 'ios');
+  //mk.installConfig('Microsoft.staging', 'ios');
+  mk.build('Debug', 'ios');
 }
 catch(ex){
   console.log(JSON.stringify(ex, null, 2));
