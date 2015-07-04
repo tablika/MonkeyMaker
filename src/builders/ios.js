@@ -73,9 +73,7 @@ module.exports.prototype.installConfig = function(configName) {
   // Step4: Manipulate Config.plist
   try {
     var plistPath = path.join(this.projectRootPath, 'Config.plist');
-    // We don't need the 'app' property anymore, just remove it.
-    delete configurationObject.app;
-    saveConfigObject(configurationObject, plistPath, nameValuePair);
+    saveConfigObject(configurationObject.config, plistPath, nameValuePair);
   } catch (exception) {
     throw { innerException: exception, message: "Could not update Config.plist" };
   }
