@@ -1,16 +1,18 @@
 var configUtil = require('./config.js');
 var fs = require('fs');
+var uuid = require('node-uuid');          // Unique id generator.
+var format = require('string-format');    // String formatting
+var path = require('path');               // Path utilities
 
-var monkeyConfigTemplate = JSON.parse(fs.readFileSync('monkeyConfigTemplate.json', 'utf8'));
+format.extend(String.prototype);
 
 module.exports = Monkey;
 
 function Monkey(options) {
 
   this.options = options || { };
-
-  this.filters = [];
-
+  this.eventHandlers = [];
+  this.artifactProcessors = [];
   this.builders = {
     'ios': require('./builders/ios.js'),
     'android': require('./builders/android.js')
@@ -18,27 +20,31 @@ function Monkey(options) {
 
 }
 
-Monkey.prototype.use = function(filter) {
-  this.filters.push(filter);
+Monkey.prototype.useEventHandler = function(eventHandler) {
+  this.eventHandlers.push(eventHandler);
+};
+
+Monkey.prototype.useArtifactProcessor = function(artifactProcessor) {
+  this.artifactProcessors.push(artifactProcessor);
 }
 
 Monkey.prototype.postEvent = function(event, args) {
-  for (var i = 0; i < this.filters.length; i++) {
-    this.filters[i][event](args);
+  for (var i = 0; i < this.eventHandlers.length; i++) {
+    this.eventHandlers[i][event](args);
   }
-}
+};
 
 Monkey.prototype.build = function(target, platform, outputPath) {
 
-  var builder = getBuilder(platform);
+  var builder = this.getBuilder(platform);
   return builder.build(target, outputPath);
-}
+};
 
 Monkey.prototype.installConfig = function(configName, platform) {
 
-  var builder = getBuilder(platform);
-  return builder.installConfig(configName, callback);
-}
+  var builder = this.getBuilder(platform);
+  return builder.installConfig(configName);
+};
 
 Monkey.prototype.uploadToHockeyApp = function(appUrl, hockeyAppId, releaseNotesPath) {
 
@@ -49,30 +55,124 @@ Monkey.prototype.uploadToHockeyApp = function(appUrl, hockeyAppId, releaseNotesP
       .format(hockeyAppConfig.apiKey.value, hockeyAppId, releaseNotesPath, appUrl));
 
   return { success: execResult.status == 0, stdout: execResult.stdout, stderr: execResult.stderr };
-}
+};
 
-function getBuilder(platform) {
+Monkey.prototype.deploy = function (deployParams) {
+
+  var deployParams = configUtil.evaluate({configs: "object", platforms: "object"}, deployParams);
+  if(!deployParams.isValid) throw {errors: deployParams.errors, message: "deployParams is not valid."};
+  deployParams = deployParams.config;
+
+  var projectSettings = configUtil.evaluate({outputPath: "string.default('output')", solutionPath: "string"}, this.options.project);
+  if(!projectSettings.isValid) throw { errors: projectSettings.errors, message: "Monkey build project settings are not valid."};
+  projectSettings = projectSettings.config;
+
+  var job = {
+    id: uuid.v4(),
+    configs: deployParams.configs.value,
+    platforms: deployParams.platforms.value,
+    isFinished: false,
+    currentBuildConfig: null,
+    lastUpdate: "Initializing",
+    status: {
+      successfulConfigs: [],
+      failedConfigs: [],
+      successful: 0,
+      failed: 0,
+      remaining: deployParams.configs.value.length,
+      total: deployParams.configs.value.length
+    },
+    results: {}
+  };
+
+  this.postEvent('willStartJob', job);
+
+  var configIndex = 1;
+  for (var i = 0; i < deployParams.configs.value.length; i++) {
+    var config = deployParams.configs.value[i]
+    for (var i = 0; i < deployParams.platforms.value.length; i++) {
+      var platform = deployParams.platforms.value[i];
+      var configDeployResults = { status: "Running", completedTasks: [] };
+      if(!job.results.hasOwnProperty(config)) job.results[config] = {};
+      job.results[config][platform] = configDeployResults;
+
+      try {
+        job.currentBuildConfig = config;
+        job.lastUpdate = "Preparing for config '{0}'" ;
+        this.postEvent('willStartConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
+        var currentTask = "Preparing";
+
+        // Step 1: Install the config.
+        this.postEvent('willInstallConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
+        currentTask = "Install Config";
+        configDeployResults.status = "Installing Config";
+        var configInstallationResults = this.installConfig(config, platform);
+        configDeployResults.completedTasks.push(currentTask);
+        this.postEvent('didInstallConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id, configs: configInstallationResults.configs });
+
+        // Step 2: Build the project.
+        this.postEvent('willBuildConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
+        currentTask = "Build Project";
+        configDeployResults.status = "Building Project";
+        var outputPath = resolvePath(path.dirname(projectSettings.solutionPath.value), projectSettings.outputPath.value);
+        outputPath = path.join(outputPath, config, platform);
+        var buildResults = this.build('Debug', platform, outputPath);
+        if(!buildResults.success) throw buildResults;
+        configDeployResults.completedTasks.push(currentTask);
+        this.postEvent('didBuildConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
+
+        // Step 3: Process Artifacts
+        for (var i = 0; i < this.artifactProcessors.length; i++) {
+          var currentArtifactProcessor = this.artifactProcessors[i];
+          if(currentArtifactProcessor.supports(platform)) {
+            this.postEvent('willProcessArtifact', {configName: config, index: configIndex, platform: platform, jobId: job.id, artifactProcessorName: currentArtifactProcessor.name});
+            currentTask = "Process Artifact ({0})".format(currentArtifactProcessor.name);
+            configDeployResults.status = "Processing Artifact ({0})".format(currentArtifactProcessor.name);
+            var results = currentArtifactProcessor.process({outputUrl: buildResults.outputUrl, configName: config, platform: platform});
+            if(!results.success) throw results;
+            configDeployResults.completedTasks.push(currentTask);
+            this.postEvent('didProcessArtifact', {configName: config, index: configIndex, platform: platform, jobId: job.id, artifactProcessorName: currentArtifactProcessor.name});
+          }
+        }
+
+        // Report the successful results.
+        job.status.successful++;
+        job.status.remaining--;
+        job.status.successfulConfigs.push(config);
+        configDeployResults.status = "Successful";
+        configDeployResults.error = null;
+        this.postEvent('didFinishConfig', {configName: config, platform: platform, jobId: job.id, index: configIndex, results: configDeployResults});
+
+      } catch (exception) {
+        // Update job
+        job.status.failed++;
+        job.status.remaining--;
+        job.status.failedConfigs.push(config);
+        // Update deploy results and post an event.
+        configDeployResults.status= "Failed";
+        configDeployResults.error= exception;
+        configDeployResults.failedOn= currentTask;
+        this.postEvent('didFailConfig', {error: exception, jobId: job.id, configName: config, index: configIndex, platform: platform, results: configDeployResults});
+      }
+    }
+    configIndex++;
+  }
+  // Process the job.
+  job.isFinished= true;
+  job.currentBuildConfig= null;
+  job.lastUpdate= "Job {0}!".format(job.status.failed>0?'Failed':'Succeeded');
+  this.postEvent('didFinishJob', job);
+  return job;
+};
+
+Monkey.prototype.getBuilder = function(platform) {
   var builderClass = this.builders[platform.toLowerCase()];
   if(!builderClass) throw { message: "Unsupported platform." };
 
   return new builderClass(this);
 }
 
-try {
-  var testOptions = {
-    project: {
-      solutionPath: "/Users/peyman/Projects/Tablika/src/CAIL.sln",
-      configsPath: "/Users/peyman/Desktop/oem",
-    },
-    ios: {
-      projectName: "Cail.iOS",
-      resourcesPath: "res"
-    }
-  };
-  var mk = new Monkey( testOptions );
-  //mk.installConfig('Microsoft.staging', 'ios');
-  mk.build('Debug', 'ios');
-}
-catch(ex){
-  console.log(JSON.stringify(ex, null, 2));
+function resolvePath(prefix, directoryPath) {
+  if(path.isAbsolute(directoryPath)) return directoryPath;
+  return path.join(prefix, directoryPath);
 }

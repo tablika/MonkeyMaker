@@ -89,7 +89,7 @@ module.exports.prototype.installConfig = function(configName) {
     throw { innerException: exception, message: "Could not install resources for config: " + configName};
   }
 
-  return { installedConfigName: configName, config: nameValuePair };
+  return { installedConfigName: configName, configs: nameValuePair };
 }
 
 module.exports.prototype.build = function(target, outputPath) {
@@ -100,7 +100,7 @@ module.exports.prototype.build = function(target, outputPath) {
   try {
     var buildId = uuid.v4();
     var tempDir = path.join(os.tmpdir(), 'com.monkeymaker.Builder', 'iOS.' + buildId);
-    var packageName = buildId+'.ipa';
+    var packageName = 'app.ipa';
     var packageUrl = path.join(tempDir, packageName);
 
     // Clean it first.
@@ -142,9 +142,10 @@ module.exports.prototype.build = function(target, outputPath) {
 }
 
 function saveConfigObject(configObject, plistPath, nameValuePair) {
+  if(!configObject) return;
   for (var key in configObject) {
     var valueDetails = configObject[key];
-    if(valueDetails.value) {
+    if(valueDetails && valueDetails.value) {
       setPlist(plistPath, valueDetails.key||key, valueDetails.value);
       if(valueDetails.name) nameValuePair[valueDetails.name] = valueDetails.value;
     } else { // if there is no value given, it is an object with sub-properties (probably :D).
