@@ -124,8 +124,8 @@ Monkey.prototype.deploy = function (deployParams) {
         this.postEvent('didBuildConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id, buildResults: buildResults});
 
         // Step 3: Process Artifacts
-        for (var i = 0; i < this.artifactProcessors.length; i++) {
-          var currentArtifactProcessor = this.artifactProcessors[i];
+        for (var k = 0; k < this.artifactProcessors.length; k++) {
+          var currentArtifactProcessor = this.artifactProcessors[k];
           if(currentArtifactProcessor.supports(platform)) {
             this.postEvent('willProcessArtifact', {configName: config, index: configIndex, platform: platform, jobId: job.id, artifactProcessorName: currentArtifactProcessor.name});
             currentTask = "Process Artifact ({0})".format(currentArtifactProcessor.name);
