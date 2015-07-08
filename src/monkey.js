@@ -11,6 +11,7 @@ module.exports = Monkey;
 function Monkey(options) {
 
   this.options = options || { };
+  this.configUtil = configUtil;
   this.eventHandlers = [];
   this.artifactProcessors = [];
   this.builders = {
