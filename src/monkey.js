@@ -31,7 +31,8 @@ Monkey.prototype.useArtifactProcessor = function(artifactProcessor) {
 
 Monkey.prototype.postEvent = function(event, args) {
   for (var i = 0; i < this.eventHandlers.length; i++) {
-    this.eventHandlers[i][event](args);
+    if(this.eventHandlers[i][event])
+      this.eventHandlers[i][event](args);
   }
 };
 
@@ -60,7 +61,7 @@ Monkey.prototype.uploadToHockeyApp = function(appUrl, hockeyAppId, releaseNotesP
 
 Monkey.prototype.deploy = function (deployParams) {
 
-  var deployParams = configUtil.evaluate({configs: "object", platforms: "object"}, deployParams);
+  var deployParams = configUtil.evaluate({configs: "object", platforms: "object", store_release: "bool.default(false)"}, deployParams);
   if(!deployParams.isValid) throw {errors: deployParams.errors, message: "deployParams is not valid."};
   deployParams = deployParams.config;
 
@@ -117,7 +118,7 @@ Monkey.prototype.deploy = function (deployParams) {
         configDeployResults.status = "Building Project";
         var outputPath = resolvePath(path.dirname(projectSettings.solutionPath.value), projectSettings.outputPath.value);
         outputPath = path.join(outputPath, config, platform);
-        var buildResults = this.build('Debug', platform, outputPath);
+        var buildResults = this.build(deployParams.store_release.value?'AppStore':'Release', platform, outputPath);
         if(!buildResults.success) throw buildResults;
         configDeployResults.completedTasks.push(currentTask);
         this.postEvent('didBuildConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
