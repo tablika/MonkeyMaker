@@ -100,7 +100,7 @@ Monkey.prototype.deploy = function (deployParams) {
 
       try {
         job.currentBuildConfig = config;
-        job.lastUpdate = "Preparing for config '{0}'" ;
+        job.lastUpdate = "Preparing for config '{0}'".format(config) ;
         this.postEvent('willStartConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
         var currentTask = "Preparing";
 
@@ -121,7 +121,7 @@ Monkey.prototype.deploy = function (deployParams) {
         var buildResults = this.build(deployParams.store_release.value?'AppStore':'Release', platform, outputPath);
         if(!buildResults.success) throw buildResults;
         configDeployResults.completedTasks.push(currentTask);
-        this.postEvent('didBuildConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
+        this.postEvent('didBuildConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id, buildResults: buildResults});
 
         // Step 3: Process Artifacts
         for (var i = 0; i < this.artifactProcessors.length; i++) {
