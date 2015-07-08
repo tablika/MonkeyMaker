@@ -61,7 +61,7 @@ Monkey.prototype.uploadToHockeyApp = function(appUrl, hockeyAppId, releaseNotesP
 
 Monkey.prototype.deploy = function (deployParams) {
 
-  var deployParams = configUtil.evaluate({configs: "object", platforms: "object", store_release: "bool.default(false)"}, deployParams);
+  var deployParams = configUtil.evaluate({configs: "object", platforms: "object", store_release: "boolean.default(false)"}, deployParams);
   if(!deployParams.isValid) throw {errors: deployParams.errors, message: "deployParams is not valid."};
   deployParams = deployParams.config;
 
