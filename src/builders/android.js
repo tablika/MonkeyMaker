@@ -49,6 +49,12 @@ module.exports.prototype.installConfig = async (function (configName) {
   try {
     var configFilePath = path.join(resolvePath(this.solutionRootPath, this.options.project.configsPath.value), configName, 'android.config.json');
     var configurationObject = JSON.parse(fs.readFileSync( configFilePath ));
+    // Version Name adjustments
+    if(!configurationObject.app.version && configurationObject.app.versionName) {
+      var matchResults = /(\d+)[.](\d+)[.](\d+)/.exec(configurationObject.app.versionName);
+      if(matchResults)
+        configurationObject.app.version = matchResults[3];
+    }
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration file: " + configFilePath };
   }
@@ -58,12 +64,6 @@ module.exports.prototype.installConfig = async (function (configName) {
     var configTemplatePath = path.join(this.projectRootPath, 'config_template.json');
     var configTemplate = JSON.parse(fs.readFileSync(configTemplatePath, 'utf8'));
     configTemplate.app = appendObject(configTemplate.app, defaultAppConfigTemplate);
-    // Version Name adjustments
-    if(configurationObject.app.version && configurationObject.app.versionName) {
-      var matchResults = /(\d+)[.](\d+)[.](\d+)/.exec(configTemplate.app.version.value);
-      if(matchResults)
-        configurationObject.app.version = configTemplate.app.version.replace('$version', matchResults[3]);
-    }
     var evaluationResult = configUtil.evaluate(configTemplate, configurationObject);
     if(!evaluationResult.isValid) throw { message: "Android config '" + configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
     configurationObject = evaluationResult.config;

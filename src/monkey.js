@@ -84,7 +84,7 @@ Monkey.prototype.deploy = function (deployParams, callback) {
       successful: 0,
       failed: 0,
       remaining: deployParams.configs.value.length,
-      total: deployParams.configs.value.length
+      total: deployParams.configs.value.length * deployParams.platforms.value.length
     },
     results: {}
   };
@@ -143,7 +143,7 @@ Monkey.prototype.deploy = function (deployParams, callback) {
           // Report the successful results.
           job.status.successful++;
           job.status.remaining--;
-          job.status.successfulConfigs.push(config);
+          job.status.successfulConfigs.push('{0} ({1})'.format(config, platform.toLowerCase()));
           configDeployResults.status = "Successful";
           configDeployResults.error = null;
           this.postEvent('didFinishConfig', {configName: config, platform: platform, jobId: job.id, index: configIndex, results: configDeployResults});
@@ -152,15 +152,15 @@ Monkey.prototype.deploy = function (deployParams, callback) {
           // Update job
           job.status.failed++;
           job.status.remaining--;
-          job.status.failedConfigs.push(config);
+          job.status.failedConfigs.push('{0} ({1})'.format(config, platform.toLowerCase()));
           // Update deploy results and post an event.
           configDeployResults.status= "Failed";
           configDeployResults.error= exception;
           configDeployResults.failedOn= currentTask;
           this.postEvent('didFailConfig', {error: exception, jobId: job.id, configName: config, index: configIndex, platform: platform, results: configDeployResults});
         }
+        configIndex++;
       }
-      configIndex++;
     }
     // Process the job.
     job.isFinished= true;

@@ -45,6 +45,12 @@ module.exports.prototype.installConfig = function(configName) {
   try {
     var configFilePath = path.join(resolvePath(this.solutionRootPath, this.options.project.configsPath.value), configName, 'ios.config.json');
     var configurationObject = JSON.parse(fs.readFileSync( configFilePath ));
+    // Version Name adjustments
+    if(!configurationObject.app.version && configurationObject.app.versionName) {
+      var matchResults = /(\d+)[.](\d+)[.](\d+)/.exec(configurationObject.app.versionName);
+      if(matchResults)
+        configurationObject.app.version = '{0}.{1}.{2}'.format(matchResults[1], matchResults[2], matchResults[3]);
+    }
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration file: " + configFilePath };
   }
@@ -57,12 +63,6 @@ module.exports.prototype.installConfig = function(configName) {
     var evaluationResult = configUtil.evaluate(configTemplate, configurationObject);
     if(!evaluationResult.isValid) throw { message: "iOS config '" + configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
     configurationObject = evaluationResult.config;
-    // Version Name adjustments
-    if(configurationObject.app.version.value && configurationObject.app.versionName.value) {
-      configurationObject.app.versionName.value =
-        configurationObject.app.versionName.value
-          .replace('$version', configurationObject.app.version.value);
-    }
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration template file: " + configTemplatePath };
   }
