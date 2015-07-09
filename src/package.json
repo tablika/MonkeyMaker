@@ -1,6 +1,6 @@
 {
   "name": "monkey-maker",
-  "version": "1.0.214",
+  "version": "1.0.299",
   "description": "Node.js library to easily create configs for Xamarin.iOS and Xamarin.Android projects.",
   "main": "monkey.js",
   "scripts": {
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/peymanmortazavi/MonkeyMaker.js#readme",
   "dependencies": {
+    "asyncawait": "^0.7.4",
     "fs-extra": "^0.21.0",
     "node-uuid": "^1.4.3",
     "path": "^0.11.14",

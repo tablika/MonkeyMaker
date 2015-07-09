@@ -10,7 +10,6 @@ format.extend(String.prototype);
 
 var optionsTemplate = {
   ios: {
-    mdtoolPath: "string.default('/Applications/Xamarin Studio.app/Contents/MacOS/mdtool')",
     projectName: "string",
     resourcesPath: "string.default('Resources')"
   },
@@ -23,7 +22,7 @@ var optionsTemplate = {
 
 var defaultAppConfigTemplate = {
   name: "string.optional().keyed('CFBundleDisplayName').named('Application Name')",
-  version: "string.regex(/(\\d+).(\\d+).(\\d+)/).optional().keyed('CFBundleVersion').named('Application Version')",
+  version: "string.regex(/(\\d+)[.](\\d+)[.](\\d+)/).optional().keyed('CFBundleVersion').named('Application Version')",
   versionName: "string.optional().keyed('CFBundleShortVersionString').named('Application Version Name')",
   bundleId: "string.optional().keyed('CFBundleIdentifier').named('Application Bundle Identifier')"
 };
@@ -58,6 +57,12 @@ module.exports.prototype.installConfig = function(configName) {
     var evaluationResult = configUtil.evaluate(configTemplate, configurationObject);
     if(!evaluationResult.isValid) throw { message: "iOS config '" + configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
     configurationObject = evaluationResult.config;
+    // Version Name adjustments
+    if(configurationObject.app.version.value && configurationObject.app.versionName.value) {
+      configurationObject.app.versionName.value =
+        configurationObject.app.versionName.value
+          .replace('$version', configurationObject.app.version.value);
+    }
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration template file: " + configTemplatePath };
   }
