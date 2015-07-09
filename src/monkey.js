@@ -120,7 +120,7 @@ Monkey.prototype.deploy = function (deployParams, callback) {
           currentTask = "Build Project";
           configDeployResults.status = "Building Project";
           var outputPath = resolvePath(path.dirname(projectSettings.solutionPath.value), projectSettings.outputPath.value);
-          outputPath = path.join(outputPath, config, platform);
+          outputPath = path.join(outputPath, config, platform.toLowerCase());
           var buildResults = await(this.build(deployParams.store_release.value?'AppStore':'Release', platform, outputPath));
           if(!buildResults.success) throw buildResults;
           configDeployResults.completedTasks.push(currentTask);
