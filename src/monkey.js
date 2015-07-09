@@ -168,7 +168,7 @@ Monkey.prototype.deploy = function (deployParams, callback) {
     job.lastUpdate= "Job {0}!".format(job.status.failed>0?'Failed':'Succeeded');
     this.postEvent('didFinishJob', job);
     return job;
-  });
+  }).bind(this);
   asyncTask().then(callback);
 };
 
