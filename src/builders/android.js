@@ -160,7 +160,7 @@ module.exports.prototype.build = function(target, outputPath) {
     buildResults.stdout = execResult.stdout;
     buildResults.success = execResult.status == 0;
 
-    var filesList = fs.readdirSync(srcpath).filter(function(file) {
+    var filesList = fs.readdirSync(tempDir).filter(function(file) {
       return (/-Signed[.]apk$/.exec(file) != null);
     });
 
@@ -168,7 +168,7 @@ module.exports.prototype.build = function(target, outputPath) {
       var packageUrl = path.join(tempDir, filesList[0]);
       outputPath = outputPath || path.join(this.projectRootPath, 'bin', target);
       fs.mkdirsSync(outputPath);
-      var outputUrl = path.join(outputPath, packageName);
+      var outputUrl = path.join(outputPath, "app.apk");
       fs.copySync(packageUrl, outputUrl);
       buildResults.outputUrl = outputUrl;
     } else {
