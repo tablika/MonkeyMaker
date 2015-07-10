@@ -164,16 +164,20 @@ module.exports.prototype.build = function(target, outputPath) {
       return (/-Signed[.]apk$/.exec(file) != null);
     });
 
-    if(buildResults.success && filesList.length > 0) {
-      var packageUrl = path.join(tempDir, filesList[0]);
-      outputPath = outputPath || path.join(this.projectRootPath, 'bin', target);
-      fs.mkdirsSync(outputPath);
-      var outputUrl = path.join(outputPath, "app.apk");
-      fs.copySync(packageUrl, outputUrl);
-      buildResults.outputUrl = outputUrl;
+    if(buildResults.success) {
+      if(filesList.length > 0) {
+        var packageUrl = path.join(tempDir, filesList[0]);
+        outputPath = outputPath || path.join(this.projectRootPath, 'bin', target);
+        fs.mkdirsSync(outputPath);
+        var outputUrl = path.join(outputPath, "app.apk");
+        fs.copySync(packageUrl, outputUrl);
+        buildResults.outputUrl = outputUrl;
+      } else {
+        buildResults.success = false;
+        buildResults.message = "xbuild returns success but no apk was produced.";
+      }
     } else {
-      buildResults.success = false;
-      buildResults.message = "xbuild returns success but no apk was produced.";
+      buildResults.message = 'Build Failed';
     }
 
   } catch (exception) {

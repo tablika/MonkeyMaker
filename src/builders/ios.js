@@ -121,15 +121,19 @@ module.exports.prototype.build = function(target, outputPath) {
     buildResults.stdout = execResult.stdout;
     buildResults.success = execResult.status == 0;
 
-    if(buildResults.success && fs.existsSync(packageUrl)) {
-      outputPath = outputPath || path.join(this.projectRootPath, 'bin', 'iPhone', target);
-      fs.mkdirsSync(outputPath);
-      var outputUrl = path.join(outputPath, packageName);
-      fs.copySync(packageUrl, outputUrl);
-      buildResults.outputUrl = outputUrl;
+    if(buildResults.success) {
+      if(fs.existsSync(packageUrl)) {
+        outputPath = outputPath || path.join(this.projectRootPath, 'bin', 'iPhone', target);
+        fs.mkdirsSync(outputPath);
+        var outputUrl = path.join(outputPath, packageName);
+        fs.copySync(packageUrl, outputUrl);
+        buildResults.outputUrl = outputUrl;
+      } else {
+        buildResults.success = false;
+        buildResults.message = "xbuild returns success but no ipa was produced.";
+      }
     } else {
-      buildResults.success = false;
-      buildResults.message = "xbuild returns success but no ipa was produced.";
+      buildResults.message = "Build Failed";
     }
 
   } catch (exception) {

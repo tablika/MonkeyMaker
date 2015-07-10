@@ -33,8 +33,12 @@ Monkey.prototype.useArtifactProcessor = function(artifactProcessor) {
 
 Monkey.prototype.postEvent = function(event, args) {
   for (var i = 0; i < this.eventHandlers.length; i++) {
-    if(this.eventHandlers[i][event])
-      this.eventHandlers[i][event](args);
+    try {
+      if(this.eventHandlers[i][event])
+        this.eventHandlers[i][event](args);
+    } catch (exception) {
+      console.error('Event handler throws error (has no effect on the deployment): ' + exception);
+    }
   }
 };
 
@@ -83,7 +87,7 @@ Monkey.prototype.deploy = function (deployParams, callback) {
       failedConfigs: [],
       successful: 0,
       failed: 0,
-      remaining: deployParams.configs.value.length,
+      remaining: deployParams.configs.value.length * deployParams.platforms.value.length,
       total: deployParams.configs.value.length * deployParams.platforms.value.length
     },
     results: {}
@@ -103,7 +107,7 @@ Monkey.prototype.deploy = function (deployParams, callback) {
 
         try {
           job.currentBuildConfig = config;
-          job.lastUpdate = "Preparing for config '{0}'".format(config) ;
+          job.lastUpdate = "Preparing for config '{0}'".format(config);
           this.postEvent('willStartConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
           var currentTask = "Preparing";
 
