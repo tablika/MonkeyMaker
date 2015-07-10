@@ -54,17 +54,6 @@ Monkey.prototype.installConfig = function(configName, platform) {
   return builder.installConfig(configName);
 };
 
-Monkey.prototype.uploadToHockeyApp = function(appUrl, hockeyAppId, releaseNotesPath) {
-
-  var hockeyAppConfig = configUtil.evaluate({apiKey: "string"}, this.options.hockeyApp);
-  releaseNotesPath = releaseNotesPath ? '-notes_path="{0}"'.format(releaseNotesPath) : '';
-
-  var execResult = exec('puck -api_token={0} -app_id={1} -submit=auto -download=true -open=notify -notify=false {2} {3}'
-      .format(hockeyAppConfig.apiKey.value, hockeyAppId, releaseNotesPath, appUrl));
-
-  return { success: execResult.status == 0, stdout: execResult.stdout, stderr: execResult.stderr };
-};
-
 Monkey.prototype.deploy = function (deployParams, callback) {
 
   var deployParams = configUtil.evaluate({configs: "object", platforms: "object", store_release: "boolean.default(false)"}, deployParams);

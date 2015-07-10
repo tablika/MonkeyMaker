@@ -13,7 +13,7 @@ function evaluate(configTemplate, actualConfig, prefix) {
   for(var key in configTemplate) {
     if(typeof(configTemplate[key]) == "object") {
       // if it's an object then, recursively search through it.
-      var results = evaluate(configTemplate[key], actualConfig[key], key);
+      var results = evaluate(configTemplate[key], actualConfig[key], (prefix ? prefix + "." : "") + key);
       if(!results.isValid)
         errors = errors.concat(results.errors);
       else

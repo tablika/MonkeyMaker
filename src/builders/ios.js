@@ -62,11 +62,11 @@ module.exports.prototype.installConfig = function(configName) {
     var configTemplate = JSON.parse(fs.readFileSync(configTemplatePath, 'utf8'));
     configTemplate.app = appendObject(configTemplate.app, defaultAppConfigTemplate);
     var evaluationResult = configUtil.evaluate(configTemplate, configurationObject);
-    if(!evaluationResult.isValid) throw { message: "iOS config '" + configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
-    configurationObject = evaluationResult.config;
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration template file: " + configTemplatePath };
   }
+  if(!evaluationResult.isValid) throw { message: "iOS config '" + configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
+  configurationObject = evaluationResult.config;
 
   // Step3: Manipulate Info.plist
   try {
@@ -159,7 +159,7 @@ function saveConfigObject(configObject, plistPath, nameValuePair) {
       setPlist(plistPath, valueDetails.key||key, valueDetails.value);
       if(valueDetails.name) nameValuePair[valueDetails.name] = valueDetails.value;
     } else { // if there is no value given, it is an object with sub-properties (probably :D).
-      saveConfigObject(configObject[key], plistPath);
+      saveConfigObject(configObject[key], plistPath, nameValuePair);
     }
   }
 }
