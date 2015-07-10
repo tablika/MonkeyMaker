@@ -133,11 +133,11 @@ Monkey.prototype.deploy = function (deployParams, callback) {
           // Step 3: Process Artifacts
           for (var k = 0; k < this.artifactProcessors.length; k++) {
             var currentArtifactProcessor = this.artifactProcessors[k];
-            if(currentArtifactProcessor.supports(platform)) {
+            if(currentArtifactProcessor.supports(platform.toLowerCase())) {
               this.postEvent('willProcessArtifact', {configName: config, index: configIndex, platform: platform, jobId: job.id, artifactProcessorName: currentArtifactProcessor.name});
               currentTask = "Process Artifact ({0})".format(currentArtifactProcessor.name);
               configDeployResults.status = "Processing Artifact ({0})".format(currentArtifactProcessor.name);
-              var results = await(currentArtifactProcessor.process({outputUrl: buildResults.outputUrl, configName: config, platform: platform}));
+              var results = await(currentArtifactProcessor.process({monkey: this, config: configInstallationResults.rawConfig, outputUrl: buildResults.outputUrl, configName: config, platform: platform}));
               if(!results.success) throw results;
               configDeployResults.completedTasks.push(currentTask);
               this.postEvent('didProcessArtifact', {configName: config, index: configIndex, platform: platform, jobId: job.id, artifactProcessorName: currentArtifactProcessor.name});

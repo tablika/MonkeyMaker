@@ -45,6 +45,7 @@ module.exports.prototype.installConfig = function(configName) {
   try {
     var configFilePath = path.join(resolvePath(this.solutionRootPath, this.options.project.configsPath.value), configName, 'ios.config.json');
     var configurationObject = JSON.parse(fs.readFileSync( configFilePath ));
+    var rawConfigObject = configurationObject;
     // Version Name adjustments
     if(!configurationObject.app.version && configurationObject.app.versionName) {
       var matchResults = /(\d+)[.](\d+)[.](\d+)/.exec(configurationObject.app.versionName);
@@ -94,7 +95,7 @@ module.exports.prototype.installConfig = function(configName) {
     throw { innerException: exception, message: "Could not install resources for config: " + configName};
   }
 
-  return { installedConfigName: configName, configs: nameValuePair };
+  return { installedConfigName: configName, configs: nameValuePair, rawConfig: rawConfigObject };
 }
 
 module.exports.prototype.build = function(target, outputPath) {
