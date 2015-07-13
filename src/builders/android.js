@@ -202,12 +202,12 @@ function saveConfigObject(configObject, settings, nameValuePair) {
   if(!configObject) return;
   for (var key in configObject) {
     var valueDetails = configObject[key];
-    if(valueDetails && valueDetails.value) {
+    if(valueDetails && valueDetails.hasOwnProperty('value')) {
       var type = typeof(valueDetails.value) == 'boolean' ? 'bool' : 'string';
       setConfig(settings['resources'][type], valueDetails.key||key, valueDetails.value);
       if(valueDetails.name) nameValuePair[valueDetails.name] = valueDetails.value;
     } else { // if there is no value given, it is an object with sub-properties (probably :D).
-      saveConfigObject(configObject[key], plistPath, nameValuePair);
+      saveConfigObject(configObject[key], settings, nameValuePair);
     }
   }
 }
