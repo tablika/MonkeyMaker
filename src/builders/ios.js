@@ -37,7 +37,7 @@ module.exports = function(monkey) {
   this.projectRootPath = path.join(this.solutionRootPath, this.options.ios.projectName.value);
 }
 
-module.exports.prototype.installConfig = function(configName) {
+module.exports.prototype.installConfig = function(configName, overrides) {
 
   var nameValuePair = {};
 
@@ -47,6 +47,9 @@ module.exports.prototype.installConfig = function(configName) {
     var configurationObject = JSON.parse(fs.readFileSync( configFilePath ));
     var rawConfigObject = configurationObject;
     // Version Name adjustments
+    if(overrides.version) {
+      configurationObject.app.versionName = overrides.version;
+    }
     if(!configurationObject.app.version && configurationObject.app.versionName) {
       var matchResults = /(\d+)[.](\d+)[.](\d+)/.exec(configurationObject.app.versionName);
       if(matchResults)

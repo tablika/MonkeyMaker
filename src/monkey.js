@@ -48,15 +48,21 @@ Monkey.prototype.build = function(target, platform, outputPath) {
   return builder.build(target, outputPath);
 };
 
-Monkey.prototype.installConfig = function(configName, platform) {
+Monkey.prototype.installConfig = function(configName, platform, overrides) {
 
   var builder = this.getBuilder(platform);
-  return builder.installConfig(configName);
+  return builder.installConfig(configName, overrides);
 };
 
 Monkey.prototype.deploy = function (deployParams, callback) {
 
-  var deployParams = configUtil.evaluate({configs: "object", platforms: "object", store_release: "boolean.default(false)"}, deployParams);
+  var deployParams = configUtil.evaluate({
+    configs: "object",
+    platforms: "object",
+    store_release: "boolean.default(false)",
+    version: "string.optional()"
+  }, deployParams);
+
   if(!deployParams.isValid) throw {errors: deployParams.errors, message: "deployParams is not valid."};
   deployParams = deployParams.config;
 
@@ -104,7 +110,7 @@ Monkey.prototype.deploy = function (deployParams, callback) {
           this.postEvent('willInstallConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id});
           currentTask = "Install Config";
           configDeployResults.status = "Installing Config";
-          var configInstallationResults = await(this.installConfig(config, platform));
+          var configInstallationResults = await(this.installConfig(config, platform, {version: deployParams.version.value}));
           configDeployResults.completedTasks.push(currentTask);
           this.postEvent('didInstallConfig', {configName: config, index: configIndex, platform: platform, jobId: job.id, configs: configInstallationResults.configs });
 
