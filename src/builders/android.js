@@ -89,19 +89,19 @@ module.exports.prototype.installConfig = async (function (configName, overrides)
       var manifestData = await(parser.parseStringAsync(manifestXmlFile));
       if(appConfig.name && appConfig.name.value) {
         manifestData['manifest']['application'][0]['$']['android:label'] = appConfig.name.value;
-        nameValuePair[appConfig.name.name||'name'];
+        nameValuePair[appConfig.name.name||'name'] = appConfig.name.value;
       }
       if(appConfig.bundleId && appConfig.bundleId.value) {
         manifestData['manifest']['$']['package'] = appConfig.bundleId.value;
-        nameValuePair[appConfig.bundleId.name||'bundleId'];
+        nameValuePair[appConfig.bundleId.name||'bundleId'] = appConfig.bundleId.value;
       }
       if(appConfig.version && appConfig.version.value) {
         manifestData['manifest']['$']['android:versionCode'] = appConfig.version.value;
-        nameValuePair[appConfig.version.name||'version'];
+        nameValuePair[appConfig.version.name||'version'] = appConfig.version.value;
       }
       if(appConfig.versionName && appConfig.versionName.value) {
         manifestData['manifest']['$']['android:versionName'] = appConfig.versionName.value;
-        nameValuePair[appConfig.versionName.name||'versionName'];
+        nameValuePair[appConfig.versionName.name||'versionName'] = appConfig.versionName.value;
       }
       var newManifestXmlFile = builder.buildObject(manifestData);
       fs.writeFileSync(manifestPath, newManifestXmlFile);
