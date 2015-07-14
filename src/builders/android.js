@@ -118,6 +118,9 @@ module.exports.prototype.installConfig = async (function (configName, overrides)
 
     var settingsData = await(parser.parseStringAsync(settingsXmlFile));
     saveConfigObject(configurationObject.config, settingsData, nameValuePair);
+
+    var newSettingsXmlFile = builder.buildObject(settingsData);
+    fs.writeFileSync(settingsPath, newSettingsXmlFile);
   } catch (exception) {
     throw { innerException: exception, message: "Could not update settings.xml" };
   }
@@ -200,10 +203,14 @@ module.exports.prototype.build = function(target, outputPath) {
 
 function saveConfigObject(configObject, settings, nameValuePair) {
   if(!configObject) return;
+  if(typeof(settings['resources']) != 'object')
+    settings['resources'] = {};
+
   for (var key in configObject) {
     var valueDetails = configObject[key];
     if(valueDetails && valueDetails.hasOwnProperty('value')) {
       var type = typeof(valueDetails.value) == 'boolean' ? 'bool' : 'string';
+      if(!settings['resources'][type]) settings['resources'][type] = [];
       setConfig(settings['resources'][type], valueDetails.key||key, valueDetails.value);
       if(valueDetails.name) nameValuePair[valueDetails.name] = valueDetails.value;
     } else { // if there is no value given, it is an object with sub-properties (probably :D).
@@ -219,6 +226,7 @@ function setConfig(data, key, value) {
       return;
     }
   }
+  data.push({'$':{'name': key}, '_': value});
 }
 
 function appendObject(object1, object2) {
