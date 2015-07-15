@@ -53,7 +53,7 @@ module.exports.prototype.installConfig = async (function (configInfo, overrides)
     throw { innerException: exception, message: "Could not read the configuration template file: " + configTemplatePath };
   }
   if(!evaluationResult.isValid) throw { message: "Android config '" + configInfo.configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
-  configurationObject = evaluationResult;
+  configurationObject = evaluationResult.config;
 
   var parser = new xml2js.Parser();
   var builder = new xml2js.Builder();
@@ -132,12 +132,12 @@ module.exports.prototype.build = function(target, outputPath) {
 
     // Clean it first.
     exec('xbuild {0} /p:Configuration={1} /t:Clean'
-        .format(path.join(this.projectRootPath, this.options.android.projectName.value+".csproj"),
+        .format(path.join(this.projectRootPath, this.options.android.projectName+".csproj"),
             target.replace(' ', '-')));
 
     // Build it.
     var execResult = exec('xbuild {0} /p:Configuration={1} /t:SignAndroidPackage /p:OutputPath="{2}/"'
-        .format(path.join(this.projectRootPath, this.options.android.projectName.value+".csproj"),
+        .format(path.join(this.projectRootPath, this.options.android.projectName+".csproj"),
             target.replace(' ', '-'), tempDir));
 
     buildResults.stdout = execResult.stdout;

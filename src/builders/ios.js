@@ -49,7 +49,7 @@ module.exports.prototype.installConfig = function(configInfo, overrides) {
     throw { innerException: exception, message: "Could not read the configuration template file: " + configTemplatePath };
   }
   if(!evaluationResult.isValid) throw { message: "iOS config '" + configInfo.name + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
-  configurationObject = evaluationResult.configs;
+  configurationObject = evaluationResult.config;
 
   // Step3: Manipulate Info.plist
   try {
@@ -94,12 +94,12 @@ module.exports.prototype.build = function(target, outputPath) {
 
     // Clean it first.
     exec('xbuild {0} /p:Platform=iPhone /p:Configuration={1} /t:Clean'
-        .format(path.join(this.projectRootPath, this.options.ios.projectName.value+".csproj"),
+        .format(path.join(this.projectRootPath, this.options.ios.projectName+".csproj"),
             target.replace(' ', '-')));
 
     // Build it.
     var execResult = exec('xbuild {0} /p:Platform=iPhone /p:Configuration={1} /p:BuildIpa=true /p:OutputPath="{2}/" /p:IpaPackageName="{3}"'
-        .format(path.join(this.projectRootPath, this.options.ios.projectName.value+".csproj"),
+        .format(path.join(this.projectRootPath, this.options.ios.projectName+".csproj"),
             target.replace(' ', '-'), tempDir, packageName));
 
     buildResults.stdout = execResult.stdout;

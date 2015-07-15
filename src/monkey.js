@@ -78,7 +78,7 @@ module.exports.prototype.getConfigInfo = function(configName, platform) {
   if(!this.options.hasOwnProperty(platform)) {
     throw { message: "Monkey project is not configured for this platform: " + platform };
   }
-  template[platform] = baseConfigTemplate;
+  template[platform] = this.baseConfigTemplate;
   var evaluationResult = configUtil.evaluate(template, this.options);
   if(!evaluationResult.isValid) {
     throw { message: "Monkey project settings are not valid.", errors: evaluationResult.errors };
@@ -251,7 +251,7 @@ module.exports.prototype.getBuilder = function(platform) {
   if(!this.options.hasOwnProperty(platform)) {
     throw { message: "Monkey project is not configured for this platform: " + platform };
   }
-  template[platform] = baseConfigTemplate;
+  template[platform] = this.baseConfigTemplate;
   var evaluationResult = configUtil.evaluate(template, this.options);
   if(!evaluationResult.isValid) {
     throw { message: "Monkey project settings are not valid.", errors: evaluationResult.errors };
