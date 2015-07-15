@@ -1,4 +1,4 @@
-var configUtil = require('../config.js'); // Config utility created by MonkeyMaker
+var configUtil = require('config-util');  // Config utilities.
 var fs = require('fs-extra');             // extentions to node.js's built-in fs library.
 var path = require('path');               // Path utilities
 var exec = require('sync-exec');          // Exec utilities
@@ -8,18 +8,6 @@ var os = require('os');
 
 format.extend(String.prototype);
 
-var optionsTemplate = {
-  ios: {
-    projectName: "string",
-    resourcesPath: "string.default('Resources')"
-  },
-  project: {
-    solutionPath: "string",
-    configsPath: "string.default('oem')",
-    outputPath: "string.default('output')"
-  }
-};
-
 var defaultAppConfigTemplate = {
   name: "string.optional().keyed('CFBundleDisplayName').named('Application Name')",
   version: "string.regex(/(\\d+)[.](\\d+)[.](\\d+)/).optional().keyed('CFBundleVersion').named('Application Version')",
@@ -27,25 +15,18 @@ var defaultAppConfigTemplate = {
   bundleId: "string.optional().keyed('CFBundleIdentifier').named('Application Bundle Identifier')"
 };
 
-module.exports = function(monkey) {
-  var options = monkey.options;
-  var evaluationResult = configUtil.evaluate(optionsTemplate, options);
-  if(!evaluationResult.isValid) throw { message: "iOS builder options are not valid.", errors: evaluationResult.errors };
-
-  this.options = evaluationResult.config;
-  this.solutionRootPath = path.dirname(this.options.project.solutionPath.value);
-  this.projectRootPath = path.join(this.solutionRootPath, this.options.ios.projectName.value);
+module.exports = function(monkey, options) {
+  this.options = options;
+  this.monkey = monkey;
+  this.solutionRootPath = path.dirname(this.options.project.solutionPath);
+  this.projectRootPath = path.join(this.solutionRootPath, this.options.ios.projectName);
 }
 
-module.exports.prototype.installConfig = function(configName, overrides) {
-
-  var nameValuePair = {};
+module.exports.prototype.installConfig = function(configInfo, overrides) {
 
   // Step1: read the config file.
   try {
-    var configFilePath = path.join(resolvePath(this.solutionRootPath, this.options.project.configsPath.value), configName, 'ios.config.json');
-    var configurationObject = JSON.parse(fs.readFileSync( configFilePath ));
-    var rawConfigObject = configurationObject;
+    var configurationObject = JSON.parse(fs.readFileSync(path.join(configInfo.configPath, 'config.json'), 'utf8'));
     // Version Name adjustments
     if(overrides.version) {
       configurationObject.app.versionName = overrides.version;
@@ -61,44 +42,43 @@ module.exports.prototype.installConfig = function(configName, overrides) {
 
   // Step2: See if there is any config_template.json present
   try {
-    var configTemplatePath = path.join(this.projectRootPath, 'config_template.json');
-    var configTemplate = JSON.parse(fs.readFileSync(configTemplatePath, 'utf8'));
+    var configTemplate = JSON.parse(fs.readFileSync(configInfo.configTemplateFilePath, 'utf8'));
     configTemplate.app = appendObject(configTemplate.app, defaultAppConfigTemplate);
     var evaluationResult = configUtil.evaluate(configTemplate, configurationObject);
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration template file: " + configTemplatePath };
   }
-  if(!evaluationResult.isValid) throw { message: "iOS config '" + configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
-  configurationObject = evaluationResult.config;
+  if(!evaluationResult.isValid) throw { message: "iOS config '" + configInfo.name + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
+  configurationObject = evaluationResult.configs;
 
   // Step3: Manipulate Info.plist
   try {
-    var plistPath = path.join(this.projectRootPath, 'Info.plist');
-    saveConfigObject(configurationObject.app, plistPath, nameValuePair);
+    var plistPath = path.join(configInfo.projectPath, 'Info.plist');
+    saveConfigObject(configurationObject.app, plistPath);
   } catch (exception) {
     throw { innerException: exception, message: "Could not update Info.plist" };
   }
 
   // Step4: Manipulate Config.plist
   try {
-    var plistPath = path.join(this.projectRootPath, 'Config.plist');
-    saveConfigObject(configurationObject.config, plistPath, nameValuePair);
+    var plistPath = path.join(configInfo.projectPath, 'Config.plist');
+    saveConfigObject(configurationObject.config, plistPath);
   } catch (exception) {
     throw { innerException: exception, message: "Could not update Config.plist" };
   }
 
   // Step5: Copy resources if any
   try {
-    var projectResourcesPath = resolvePath(this.projectRootPath, this.options.ios.resourcesPath.value);
-    var configResourcesPath = path.join(resolvePath(this.solutionRootPath, this.options.project.configsPath.value), configName, 'ios.resources');
+    var projectResourcesPath = path.join(configInfo.projectPath, this.options.ios.resourcesPath);
+    var configResourcesPath = path.join(configInfo.configPath, 'resources');
     if(fs.existsSync(projectResourcesPath) && fs.existsSync(configResourcesPath)) {
       fs.copySync(configResourcesPath, projectResourcesPath);
     }
   } catch (exception) {
-    throw { innerException: exception, message: "Could not install resources for config: " + configName};
+    throw { innerException: exception, message: "Could not install resources for config: " + configInfo.name};
   }
 
-  return { installedConfigName: configName, configs: nameValuePair, rawConfig: rawConfigObject };
+  return { installedConfigName: configInfo.configName, configSettings: evaluationResult };
 }
 
 module.exports.prototype.build = function(target, outputPath) {
@@ -154,15 +134,14 @@ module.exports.prototype.build = function(target, outputPath) {
   return buildResults;
 }
 
-function saveConfigObject(configObject, plistPath, nameValuePair) {
+function saveConfigObject(configObject, plistPath) {
   if(!configObject) return;
   for (var key in configObject) {
     var valueDetails = configObject[key];
     if(valueDetails && valueDetails.value) {
       setPlist(plistPath, valueDetails.key||key, valueDetails.value);
-      if(valueDetails.name) nameValuePair[valueDetails.name] = valueDetails.value;
     } else { // if there is no value given, it is an object with sub-properties (probably :D).
-      saveConfigObject(configObject[key], plistPath, nameValuePair);
+      saveConfigObject(configObject[key], plistPath);
     }
   }
 }
@@ -180,9 +159,4 @@ function appendObject(object1, object2) {
 function setPlist(plistPath, propertyName, value) {
   var execResult = exec('/usr/libexec/PlistBuddy -c "Set :{0} {1}" "{2}"'.format(propertyName, value, plistPath));
   if(execResult.status != 0) throw { status: execResult.status, message: execResult.stderr, output: execResult.stdout };
-}
-
-function resolvePath(prefix, directoryPath) {
-  if(path.isAbsolute(directoryPath)) return directoryPath;
-  return path.join(prefix, directoryPath);
 }

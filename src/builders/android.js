@@ -1,4 +1,4 @@
-var configUtil = require('../config.js'); // Config utility created by MonkeyMaker
+var configUtil = require('config-util'); // Config utility created by MonkeyMaker
 var fs = require('fs-extra');             // extentions to node.js's built-in fs library.
 var path = require('path');               // Path utilities
 var exec = require('sync-exec');          // Exec utilities
@@ -12,18 +12,6 @@ var xml2js = Promise.promisifyAll(require("xml2js"));
 
 format.extend(String.prototype);
 
-var optionsTemplate = {
-  android: {
-    projectName: "string",
-    resourcesPath: "string.default('Resources')"
-  },
-  project: {
-    solutionPath: "string",
-    configsPath: "string.default('oem')",
-    outputPath: "string.default('output')"
-  }
-};
-
 var defaultAppConfigTemplate = {
   name: "string.optional().named('Application Name')",
   version: "string.regex(/(\\d+)/).optional().keyed('CFBundleVersion').named('Application Version')",
@@ -31,25 +19,18 @@ var defaultAppConfigTemplate = {
   bundleId: "string.optional().named('Application Bundle Identifier')"
 };
 
-module.exports = function(monkey) {
-  var options = monkey.options;
-  var evaluationResult = configUtil.evaluate(optionsTemplate, options);
-  if(!evaluationResult.isValid) throw { message: "Android builder options are not valid.", errors: evaluationResult.errors };
-
-  this.options = evaluationResult.config;
+module.exports = function(monkey, options) {
+  this.options = options;
+  this.monkey = monkey;
   this.solutionRootPath = path.dirname(this.options.project.solutionPath.value);
   this.projectRootPath = path.join(this.solutionRootPath, this.options.android.projectName.value);
 }
 
-module.exports.prototype.installConfig = async (function (configName, overrides) {
-
-  var nameValuePair = {};
+module.exports.prototype.installConfig = async (function (configInfo, overrides) {
 
   // Step1: read the config file.
   try {
-    var configFilePath = path.join(resolvePath(this.solutionRootPath, this.options.project.configsPath.value), configName, 'android.config.json');
-    var configurationObject = JSON.parse(fs.readFileSync( configFilePath ));
-    var rawConfigObject = configurationObject;
+    var configurationObject = JSON.parse(fs.readFileSync(path.join(configInfo.configPath, 'config.json'), 'utf8'));
     // Version Name adjustments
     if(overrides.version) {
       configurationObject.app.versionName = overrides.version;
@@ -65,15 +46,14 @@ module.exports.prototype.installConfig = async (function (configName, overrides)
 
   // Step2: See if there is any config_template.json present
   try {
-    var configTemplatePath = path.join(this.projectRootPath, 'config_template.json');
-    var configTemplate = JSON.parse(fs.readFileSync(configTemplatePath, 'utf8'));
+    var configTemplate = JSON.parse(fs.readFileSync(configInfo.configTemplateFilePath, 'utf8'));
     configTemplate.app = appendObject(configTemplate.app, defaultAppConfigTemplate);
     var evaluationResult = configUtil.evaluate(configTemplate, configurationObject);
   } catch(exception) {
     throw { innerException: exception, message: "Could not read the configuration template file: " + configTemplatePath };
   }
-  if(!evaluationResult.isValid) throw { message: "Android config '" + configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
-  configurationObject = evaluationResult.config;
+  if(!evaluationResult.isValid) throw { message: "Android config '" + configInfo.configName + "' is not valid according to the project's config template.", errors: evaluationResult.errors };
+  configurationObject = evaluationResult;
 
   var parser = new xml2js.Parser();
   var builder = new xml2js.Builder();
@@ -89,19 +69,15 @@ module.exports.prototype.installConfig = async (function (configName, overrides)
       var manifestData = await(parser.parseStringAsync(manifestXmlFile));
       if(appConfig.name && appConfig.name.value) {
         manifestData['manifest']['application'][0]['$']['android:label'] = appConfig.name.value;
-        nameValuePair[appConfig.name.name||'name'] = appConfig.name.value;
       }
       if(appConfig.bundleId && appConfig.bundleId.value) {
         manifestData['manifest']['$']['package'] = appConfig.bundleId.value;
-        nameValuePair[appConfig.bundleId.name||'bundleId'] = appConfig.bundleId.value;
       }
       if(appConfig.version && appConfig.version.value) {
         manifestData['manifest']['$']['android:versionCode'] = appConfig.version.value;
-        nameValuePair[appConfig.version.name||'version'] = appConfig.version.value;
       }
       if(appConfig.versionName && appConfig.versionName.value) {
         manifestData['manifest']['$']['android:versionName'] = appConfig.versionName.value;
-        nameValuePair[appConfig.versionName.name||'versionName'] = appConfig.versionName.value;
       }
       var newManifestXmlFile = builder.buildObject(manifestData);
       fs.writeFileSync(manifestPath, newManifestXmlFile);
@@ -113,11 +89,11 @@ module.exports.prototype.installConfig = async (function (configName, overrides)
   // Step4: Manipulate settings.xml
   try {
     var settingsPath = path.join(this.projectRootPath,
-      this.options.android.resourcesPath.value, 'values', 'settings.xml');
+      this.options.android.resourcesPath, 'values', 'settings.xml');
     var settingsXmlFile = fs.readFileSync(settingsPath, 'utf8');
 
     var settingsData = await(parser.parseStringAsync(settingsXmlFile));
-    saveConfigObject(configurationObject.config, settingsData, nameValuePair);
+    saveConfigObject(configurationObject.config, settingsData);
 
     var newSettingsXmlFile = builder.buildObject(settingsData);
     fs.writeFileSync(settingsPath, newSettingsXmlFile);
@@ -127,16 +103,16 @@ module.exports.prototype.installConfig = async (function (configName, overrides)
 
   // Step5: Copy resources if any
   try {
-    var projectResourcesPath = resolvePath(this.projectRootPath, this.options.android.resourcesPath.value);
-    var configResourcesPath = path.join(resolvePath(this.solutionRootPath, this.options.project.configsPath.value), configName, 'android.resources');
+    var projectResourcesPath = path.join(configInfo.projectPath, this.options.android.resourcesPath);
+    var configResourcesPath = path.join(configInfo.configPath, 'resources');
     if(fs.existsSync(projectResourcesPath) && fs.existsSync(configResourcesPath)) {
       fs.copySync(configResourcesPath, projectResourcesPath);
     }
   } catch (exception) {
-    throw { innerException: exception, message: "Could not install resources for config: " + configName};
+    throw { innerException: exception, message: "Could not install resources for config: " + configInfo.configName};
   }
 
-  return { installedConfigName: configName, configs: nameValuePair, rawConfig: rawConfigObject };
+  return { installedConfigName: configInfo.configName, configSettings: evaluationResult };
 
 });
 
@@ -201,7 +177,7 @@ module.exports.prototype.build = function(target, outputPath) {
   return buildResults;
 }
 
-function saveConfigObject(configObject, settings, nameValuePair) {
+function saveConfigObject(configObject, settings) {
   if(!configObject) return;
   if(typeof(settings['resources']) != 'object')
     settings['resources'] = {};
@@ -212,9 +188,8 @@ function saveConfigObject(configObject, settings, nameValuePair) {
       var type = typeof(valueDetails.value) == 'boolean' ? 'bool' : 'string';
       if(!settings['resources'][type]) settings['resources'][type] = [];
       setConfig(settings['resources'][type], valueDetails.key||key, valueDetails.value);
-      if(valueDetails.name) nameValuePair[valueDetails.name] = valueDetails.value;
     } else { // if there is no value given, it is an object with sub-properties (probably :D).
-      saveConfigObject(configObject[key], settings, nameValuePair);
+      saveConfigObject(configObject[key], settings);
     }
   }
 }
@@ -237,9 +212,4 @@ function appendObject(object1, object2) {
     }
   }
   return object1;
-}
-
-function resolvePath(prefix, directoryPath) {
-  if(path.isAbsolute(directoryPath)) return directoryPath;
-  return path.join(prefix, directoryPath);
 }
