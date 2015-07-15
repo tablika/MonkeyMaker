@@ -157,7 +157,8 @@ module.exports.prototype.deploy = function (deployParams, callback) {
 
           // if the config exists, continue, otherwise add to escaped.
           var resolvedConfigsPath = resolvePath(path.dirname(projectSettings.solutionPath), projectSettings.configsPath);
-          if(!fs.existsSync(path.join(resolvedConfigsPath, config, platform))) {
+          if(!fs.existsSync(path.join(resolvedConfigsPath, config, platform)) &&
+              fs.existsSync(path.join(resolvedConfigsPath, config))) {
             this.postEvent('willEscapeConfig', baseEventArgs);
             job.status.escaped++;
             job.status.escapedConfigs.push(configFriendlyName);
