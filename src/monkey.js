@@ -62,12 +62,12 @@ module.exports.prototype.build = function(target, platform, outputPath) {
 };
 
 module.exports.prototype.installConfig = function(configName, platform, overrides) {
-  var configInfo = this.getConfigInfo(configName, platform);
+  var configInfo = this.getConfigInfo(configName, platform.toLowerCase());
   return this.installConfigWithInfo(configInfo, platform, overrides);
 };
 
 module.exports.prototype.installConfigWithInfo = function(configInfo, platform, overrides) {
-  var builder = this.getBuilder(platform);
+  var builder = this.getBuilder(platform.toLowerCase());
   return builder.installConfig(configInfo, overrides);
 }
 
