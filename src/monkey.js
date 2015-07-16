@@ -204,7 +204,7 @@ module.exports.prototype.deploy = function (deployParams, callback) {
               this.postEvent('willProcessArtifact',  baseEventArgs);
               currentTask = "Process Artifact ({0})".format(currentArtifactProcessor.name);
               configDeployResults.status = "Processing Artifact ({0})".format(currentArtifactProcessor.name);
-              var results = await(currentArtifactProcessor.process({monkey: this, config: configInstallationResults.compile(), outputUrl: buildResults.outputUrl, configName: config, platform: platform}));
+              var results = await(currentArtifactProcessor.process({monkey: this, config: configInstallationResults.configSettings.compile(), outputUrl: buildResults.outputUrl, configName: config, platform: platform}));
               if(!results.success) throw results;
               configDeployResults.completedTasks.push(currentTask);
               this.postEvent('didProcessArtifact', baseEventArgs);

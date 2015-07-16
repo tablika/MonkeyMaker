@@ -22,8 +22,8 @@ var defaultAppConfigTemplate = {
 module.exports = function(monkey, options) {
   this.options = options;
   this.monkey = monkey;
-  this.solutionRootPath = path.dirname(this.options.project.solutionPath.value);
-  this.projectRootPath = path.join(this.options.projectPath, this.options.android.projectName.value);
+  this.solutionRootPath = path.dirname(this.options.project.solutionPath);
+  this.projectRootPath = path.join(this.solutionRootPath, this.options.android.projectName);
 }
 
 module.exports.prototype.installConfig = async (function (configInfo, overrides) {
