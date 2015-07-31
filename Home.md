@@ -35,4 +35,15 @@ Builders build! Their job is to install brands and build certain types of projec
 For more information on creating your own builder, plugging in, etc, refer to **[Builders](../Builders)**.
 
 ## 2. Event Handlers
+Event handlers can get notified of every single event in deployment. Usually before the event is about to happen and after it's done.
+
+Common use for event handler is anticipated to be integration with third-parties to log progress of the deployment. For example, TeamCity or Slack integration can easily be implemented using Event Handlers.
+
+You can also add a step to the deployment process simply by performing your custom action. For example, you might want to download all provisioning profiles before building your iOS project, you can easily do that right before the start of the deployment job or before building the project for each config (or brand). Every call is sync so build won't happen until your task is completed, if you want otherwise, you can add your own async logic to do so as well.
+
+There is an existing integration for HockeyApp, although it's very limited. See [MonkeyMaker-HockeyApp](https://github.com/peymanmortazavi/MonkeyMaker-HockeyApp).
+
+For more information about event handlers, refer to [Event Handlers](../EventHandlers).
+
 ## 3. Artifact Processors
+
