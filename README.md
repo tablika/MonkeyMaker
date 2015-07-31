@@ -6,6 +6,7 @@ A Node.js library to easily create multiple configs for your Xamarin.iOS and Xam
 [npm-image]: http://img.shields.io/npm/v/monkey-maker.svg
 
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url]
+[![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
 ## Installation
 
