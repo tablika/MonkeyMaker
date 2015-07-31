@@ -39,8 +39,10 @@ You shouldn't worry about this too much, this is for rare cases where you need t
 ```JavaScript
 var installConfig = function(configInfo, overrides) {
    // You have config info and overrides. Go ahead and install it!
-   return { installedConfigName: configInfo.configName, 
-configSettings: evaluationResult }; 
-// Note that evaluationResult is basically the evaluated, finalized and installed config settings.
+   return { 
+                   installedConfigName: configInfo.configName, 
+                   configSettings: evaluationResult 
+               }; 
+    // Note that evaluationResult is basically the evaluated, finalized and installed config settings.
 }
 ```
