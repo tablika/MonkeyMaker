@@ -15,15 +15,15 @@ $ npm install monkey-maker --save
 
 ## What is MonkeyMaker?
 
-MonkeyMaker is a Node.js package that would let you easily create build jobs or steps if you will similar to what a Makfile does but easier and of course in your favorite language, JavaScript. MonkeyMaker already comes with white-labeling tools making it a piece of cake to rebrand your app, change settings and deploy to third-party repos. The focus is on mobile platforms but it can extend to any compiler and any platform that can execute a Node.js app.
+MonkeyMaker is a Node.js package that would let you easily create deployment jobs similar to what a Makfile does but easier and of course in your favorite language, JavaScript. MonkeyMaker already comes with white-labeling tools making it a piece of cake to rebrand your app, change settings and deploy. The focus is on mobile platforms but it can extend to any compiler and any platform that can execute a Node.js app.
 
 Specifically, MonkeyMaker ships with support for Xamarin's iOS and Android project but you can plug in your own builder and perform your own logic.
 
 Through EventHandlers, you can perform your custom tasks at any event you'd like. For more info, see **EventHandler** documentation.
 
-Through ArtifactProcessors, you can process the generated binary. A very common case scenario is to upload it somewhere, there is already an integration for HockeyApp and iTunesConnect. This way, you can simply plug in iTC Artifact Processor and make it a real Continuous Integration, a real automated deployment.
+Through ArtifactProcessors, you can process the generated binary. A very common case scenario is to upload it somewhere, there is already an integration for HockeyApp and iTunesConnect. This way, you can simply plug in iTC Artifact Processor and make it a real Continuous Integration, a real automated deployment that builds and deploys to Test Flight for example without the need of any manual work.
 
-Focus of MonkeyMaker is on extensibility. Everyone has its own needs, MonkeyMaker allows to plug in event handlers and artifact processors to add any step you want and share it with the rest of the world so they can use it easily as well.
+Focus of MonkeyMaker is on extensibility. Everyone has its own needs, MonkeyMaker allows you to plug in event handlers and artifact processors to add any step you want and share it with the rest of the world so they can use it easily as well.
 
 Let's talk code!
 
@@ -40,7 +40,7 @@ var monkeyOptions = {
 var myMonkey = new Monkey(monkeyOptions);
 ```
 
-The only required field for Monkey is "project.solutionPath". However, depending on what you ask Monkey, you may need to add other fields as well. For example, for iTunedConnect integration, you will need to plug in your user name and password. Note that this is shared with EventHandlers and ArtifactProcessors so if you have your own package, you can expect your own fields, too.
+The only required field for Monkey is "project.solutionPath". However, depending on your needs, you may need to add other fields as well. For example, for iTunedConnect integration, you will need to plug in your user name and password. Note that this is shared with EventHandlers and ArtifactProcessors so if you have your own plug-in, your plug-in has access to these project settings and can require its own parameters.
 
 For building your iOS project, simply write the following:
 ```JavaScript
@@ -58,6 +58,8 @@ var myMonkey = new Monkey(monkeyOptions);
 var results = myMonkey.build('Debug', 'ios');
 console.log(results);
 ```
+
+For more detailed documentation, checkout the Wiki.
 
 # Tasks
 - [ ] A good documentation.
