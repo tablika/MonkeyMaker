@@ -43,7 +43,7 @@ You can also add a step to the deployment process simply by performing your cust
 
 There is an existing integration for HockeyApp, although it's very limited. See [MonkeyMaker-HockeyApp](https://github.com/peymanmortazavi/MonkeyMaker-HockeyApp).
 
-For more information about event handlers, refer to [Event Handlers](../EventHandlers).
+For more information about event handlers, refer to [Event Handlers](EventHandlers).
 
 ## 3. Artifact Processors
 
