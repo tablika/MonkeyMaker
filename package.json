@@ -1,6 +1,6 @@
 {
   "name": "monkey-maker",
-  "version": "1.0.4",
+  "version": "1.0.42",
   "description": "Node.js library to easily create configs for Xamarin.iOS and Xamarin.Android projects.",
   "main": "monkey.js",
   "scripts": {
@@ -10,6 +10,10 @@
     "type": "git",
     "url": "https://github.com/tablika/MonkeyMaker.git"
   },
+  "files": [
+    "README.md",
+    "src"
+  ],
   "keywords": [
     "xamarin",
     "make",
