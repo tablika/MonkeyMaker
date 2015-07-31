@@ -5,6 +5,7 @@ Installs a config in the project including its config files and resources.
 Parameters (which will be sent to from Monkey):
 
 **configInfo**: An object that provides info about the config that needs to be installed. It'll be something like below:
+
 | property               | description                                                |
 |------------------------|------------------------------------------------------------|
 | configName             | The name of the config.                                    |
