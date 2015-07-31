@@ -5,15 +5,15 @@ Installs a config in the project including its config files and resources.
 Parameters (which will be sent to from Monkey):
 
 **configInfo**: An object that provides info about the config that needs to be installed. It'll be something like below:
-| property | description |
+| property               | description                                                |
 |------------------------|------------------------------------------------------------|
-| configName | The name of the config. |
-| solutionFilePath | The absolute path to the solution file (*.sln) |
-| solutionPath | The path to the folder in which the solution file resides. |
-| projectFilePath | The path to the project file (*.csproj for Xamarin). |
-| projectPath | The path to the folder in which the project file resides. |
-| configTemplateFilePath | The path to the config template file*. |
-| configPath | The path to the root of this config for this platform.** |
+| configName             | The name of the config.                                    |
+| solutionFilePath       | The absolute path to the solution file (*.sln)             |
+| solutionPath           | The path to the folder in which the solution file resides. |
+| projectFilePath        | The path to the project file (*.csproj for Xamarin).       |
+| projectPath            | The path to the folder in which the project file resides.  |
+| configTemplateFilePath | The path to the config template file*.                     |
+| configPath             | The path to the root of this config for this platform.**   |
 
 * For more info about config template file, go to (here). It basically is a template which represents default values, validation logics and whether or not a field is required.
 ** It will be root of the config for your builder so if your builder is named "kiwi" then the root would be something like:
