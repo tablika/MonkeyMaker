@@ -11,9 +11,9 @@ Monkey works with a global project settings which is needed for each deployment 
 
 | Parameter | Description |
 |--------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| solutionPath | (Required) The path to the solution file. |
-| configPath | (Optional, default: oem) The path to the brands folder. Path is either absolute or relative to the same directory as the solution file. |
-| outputPath | (Optional, default: output) The path of the output files. Path is either absolute or relative to the same director as the solution file. |
+| solutionPath | (**Required**) The path to the solution file. |
+| configPath | (Optional, default: **oem**) The path to the brands folder. Path is either absolute or relative to the same directory as the solution file. |
+| outputPath | (Optional, default: **output**) The path of the output files. Path is either absolute or relative to the same director as the solution file. |
 
 For example:
 ```JSON
