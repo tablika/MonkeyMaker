@@ -32,7 +32,7 @@ Now, monkey on its own is nothing special. It's the components that make it mean
 ## 1. Builders
 Builders build! Their job is to install brands and build certain types of projects. For example, Xamarin.iOS will have its own builder, there is another builder to do the same thing for iOS projects written in Objective-C, same goes for Android, etc. You can create your own builder and plug it in the Monkey. There is limited support for Xamarin.iOS and Xamarin.Android that probably covers most of the cases but if you have special needs, you need to get in touch with authors of MonkeyMaker or just create your own builder.
 
-For more information on creating your own builder, plugging in, etc, refer to **[Builders](../Builders)**.
+For more information on creating your own builder, plugging in, etc, refer to **[Builders](Builders)**.
 
 ## 2. Event Handlers
 Event handlers can get notified of every single event in deployment. Usually before the event is about to happen and after it's done.
