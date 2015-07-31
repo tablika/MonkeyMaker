@@ -13,11 +13,11 @@ Parameters (which will be sent to from Monkey):
 | solutionPath           | The path to the folder in which the solution file resides. |
 | projectFilePath        | The path to the project file (*.csproj for Xamarin).       |
 | projectPath            | The path to the folder in which the project file resides.  |
-| configTemplateFilePath | The path to the config template file*.                     |
-| configPath             | The path to the root of this config for this platform.**   |
+| configTemplateFilePath | The path to the config template file<sup>1</sup>.                     |
+| configPath             | The path to the root of this config for this platform.<sup>2</sup>   |
 
-* For more info about config template file, go to (here). It basically is a template which represents default values, validation logics and whether or not a field is required.
-** It will be root of the config for your builder so if your builder is named "kiwi" then the root would be something like:
+1. For more info about config template file, go to (here). It basically is a template which represents default values, validation logics and whether or not a field is required.
+2. It will be root of the config for your builder so if your builder is named "kiwi" then the root would be something like:
 configPath/configName/kiwi. You can read/write any file you want, this is your space. If you need extra files or resources or your own file structure, you can do it.
 
 an example for **configInfo**:
