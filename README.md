@@ -62,6 +62,9 @@ console.log(results);
 
 For more detailed documentation, checkout the Wiki.
 
+# Community
+Google Groups: https://groups.google.com/a/tablika.com/forum/?hl=en#!forum/developer-community
+
 # Tasks
 - [ ] A good documentation.
 - [X] Create plist property if it doesn't exist.
