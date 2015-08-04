@@ -16,7 +16,8 @@ var defaultAppConfigTemplate = {
   name: "string.optional().named('Application Name')",
   version: "string.regex(/(\\d+)/).optional().keyed('CFBundleVersion').named('Application Version')",
   versionName: "string.optional().named('Application Version Name')",
-  bundleId: "string.optional().named('Application Bundle Identifier')"
+  bundleId: "string.optional().named('Application Bundle Identifier')",
+  urlScheme: "string.optional().named('Application URL Scheme')"
 };
 
 module.exports = function(monkey, options) {
@@ -79,7 +80,12 @@ module.exports.prototype.installConfig = async (function (configInfo, overrides)
       if(appConfig.versionName && appConfig.versionName.value) {
         manifestData['manifest']['$']['android:versionName'] = appConfig.versionName.value;
       }
+
       var newManifestXmlFile = builder.buildObject(manifestData);
+      // todo: Unstable code here. fix it.
+      if(appConfig.urlScheme && appConfig.urlScheme.value) {
+        newManifestXmlFile = newManifestXmlFile.replace(/android:scheme="(.*)"/, 'android:scheme="' + appConfig.urlScheme.value + '"');
+      }
       fs.writeFileSync(manifestPath, newManifestXmlFile);
     }
   } catch (exception) {
