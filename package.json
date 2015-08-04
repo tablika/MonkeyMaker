@@ -12,7 +12,8 @@
   },
   "files": [
     "README.md",
-    "src"
+    "lib",
+    "index.js"
   ],
   "keywords": [
     "xamarin",
