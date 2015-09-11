@@ -1,4 +1,4 @@
-Welcome to the MonkeyMaker wiki!
+ Welcome to the MonkeyMaker wiki!
 
 ## Introduction
 We're going to start with the Monkey project settings.
